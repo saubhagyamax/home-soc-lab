@@ -1,0 +1,6 @@
+<!-- Add inside <ossec_config> in /var/ossec/etc/ossec.conf on the target
+     then: sudo systemctl restart wazuh-agent -->
+<localfile>
+  <location>/var/log/audit/audit.log</location>
+  <log_format>audit</log_format>
+</localfile>

@@ -1,0 +1,14 @@
+# Large or sensitive files that must never be committed
+*.iso
+*.qcow2
+*.vma
+*.vma.zst
+*.ova
+*.pcap
+*.pcapng
+*.evtx
+.env
+*password*
+*secret*
+wazuh-install-files.tar
+.DS_Store

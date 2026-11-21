@@ -1,0 +1,13 @@
+# Append to ~/.ssh/config on the MacBook
+Host proxmox
+  HostName 192.168.1.50
+  User root
+
+Host wazuh
+  HostName 192.168.1.60
+  User seb
+
+Host target
+  HostName 10.10.10.30
+  User seb
+  ProxyJump wazuh

@@ -1,0 +1,23 @@
+<!--
+  Custom Wazuh rules for the home SOC lab.
+  Location on the manager: /var/ossec/etc/rules/local_rules.xml
+  Custom rule IDs: 100000-120000. One range per tactic:
+    1001xx credential access, 1002xx persistence, 1003xx execution
+  Always test with /var/ossec/bin/wazuh-logtest before restarting wazuh-manager.
+-->
+
+<group name="lab,credential_access,">
+
+  <!-- DRAFT: untested. If logtest shows no match, swap if_group for the
+       parent Sysmon rule ID that logtest reports (if_sid). -->
+  <rule id="100100" level="12">
+    <if_group>windows</if_group>
+    <field name="win.system.eventID">^10$</field>
+    <field name="win.eventdata.targetImage" type="pcre2">(?i)\\lsass\.exe$</field>
+    <description>LSASS accessed by $(win.eventdata.sourceImage) - possible credential dumping</description>
+    <mitre>
+      <id>T1003.001</id>
+    </mitre>
+  </rule>
+
+</group>
