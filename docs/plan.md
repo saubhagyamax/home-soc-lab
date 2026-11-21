@@ -3,16 +3,16 @@
 Tick items off as they're done and add a dated entry to [build-log.md](build-log.md).
 
 ## Phase 0: Prep
-- [ ] Back up Windows files on the Legion
-- [ ] Confirm the home subnet (`ipconfig getifaddr en0` on the Mac, at home) and reserve `.50` and `.60`
+- [x] Back up Windows files on the Legion
+- [x] Confirm the home subnet (`ipconfig getifaddr en0` on the Mac, at home) and reserve `.50` and `.60`
 - [x] Download the Proxmox VE ISO and balenaEtcher
 - [x] Download the Windows 11 Enterprise evaluation ISO (x64, not LTSC)
 - [x] Flash the Proxmox USB
-- [ ] BIOS: enable VT-x and VT-d, disable Secure Boot
-- [ ] Legion on Ethernet
+- [x] BIOS: enable VT-x and VT-d, disable Secure Boot
+- [x] Legion on Ethernet
 
 ## Phase 1: Proxmox VE
-- [ ] Install to the 256GB SSD, static IP `192.168.1.50`
+- [x] Install to the 256GB SSD, static IP `192.168.1.50`
 - [ ] Switch to the no-subscription repo and fully upgrade
 - [ ] Lid close ignored (`logind.conf`)
 - [ ] 1TB HDD added as `hdd` storage (ISOs, backups)
