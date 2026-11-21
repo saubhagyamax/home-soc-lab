@@ -13,7 +13,7 @@ The addresses assume a `192.168.1.0/24` home network. Adjust them if yours diffe
 
 ## Networks
 
-- **`vmbr0`**: bridged to the Legion's Ethernet port. It has internet, and the MacBook can reach it.
+- **`vmbr0`**: bridged to a USB-C Ethernet adapter (`nic1`, ASIX AX88179A), because the Legion's built-in port is broken. It has internet, and the MacBook can reach it.
 - **`vmbr1`**: no physical port, so it's isolated. All attack simulation happens here.
 
 **Install-then-isolate:** each victim VM is built on `vmbr0` so it can fetch updates and tooling. Its NIC is then moved to `vmbr1` and a `clean` snapshot is taken.

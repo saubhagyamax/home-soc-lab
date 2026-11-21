@@ -13,10 +13,10 @@ Tick items off as they're done and add a dated entry to [build-log.md](build-log
 
 ## Phase 1: Proxmox VE
 - [x] Install to the 256GB SSD, static IP `192.168.1.50`
-- [ ] Switch to the no-subscription repo and fully upgrade
-- [ ] Lid close ignored (`logind.conf`)
-- [ ] 1TB HDD added as `hdd` storage (ISOs, backups)
-- [ ] ISOs loaded: Ubuntu Server 24.04, Windows 11 eval, virtio-win
+- [x] Switch to the no-subscription repo and fully upgrade
+- [x] Lid close ignored (`logind.conf`)
+- [x] 1TB HDD added as `hdd` storage (ISOs, backups)
+- [x] ISOs loaded: Ubuntu Server 24.04, Windows 11 eval, virtio-win
 
 ## Phase 2: Lab network
 - [ ] `vmbr1` bridge with no physical port

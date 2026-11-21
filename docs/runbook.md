@@ -27,7 +27,7 @@ The step-by-step build, from an untouched Windows laptop to a working home SOC. 
     - virtio-win.iso (stable): `https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso`. Alternatively, fetch it in Proxmox later with Download from URL.
 5. **Flash the USB (8GB+)** with the Proxmox ISO using balenaEtcher.
 6. **BIOS:** press F2 (or use the Novo button). Turn on Intel Virtualization Technology and VT-d, turn off Secure Boot, then save.
-7. **Plug the Legion into the router with Ethernet.** Proxmox can't bridge over Wi-Fi.
+7. **Plug the Legion into the router with Ethernet.** Proxmox can't bridge over Wi-Fi. This Legion's built-in port is broken, so it uses a USB-C Ethernet adapter (ASIX AX88179A).
 
 ## Phase 1: Install Proxmox VE (about 1 hr)
 
@@ -38,7 +38,7 @@ The step-by-step build, from an untouched Windows laptop to a working home SOC. 
 3. **Location:** Australia, Australia/Melbourne, US keyboard.
 4. Set the root password and email.
 5. **Network:**
-    - Management NIC: the Ethernet one (`enp…`/`eno…`, never `wlp…`)
+    - Management NIC: the wired one with a cable in it (here the USB-C adapter, `nic1`), never `wlp…`
     - Hostname: `legion.lab.local`
     - IP: `192.168.1.50/24`
     - Gateway: `192.168.1.1`
@@ -63,7 +63,8 @@ The step-by-step build, from an untouched Windows laptop to a working home SOC. 
 11. **ISOs on `hdd`:**
     - Download from URL: Ubuntu Server 24.04 LTS and `virtio-win.iso`.
     - Upload from the Mac: the Windows 11 eval ISO.
-12. **Battery:** keep it plugged in. Optionally, if the file exists, limit charging:
+12. **USB-C Ethernet adapter:** copy [`configs/proxmox/90-usb-nic-hotplug.rules`](../configs/proxmox/90-usb-nic-hotplug.rules) to `/etc/udev/rules.d/` and run `udevadm control --reload`. Without it, plugging in the charger drops the adapter and the host stays offline.
+13. **Battery:** keep it plugged in. Optionally, if the file exists, limit charging:
 
     ```
     echo 1 > /sys/bus/platform/drivers/ideapad_acpi/VPC2004:00/conservation_mode
@@ -264,6 +265,7 @@ Use `detections/_template.md` for each one. Aim for about 8 in 3 weeks, then sta
 
 | Symptom | Likely cause | Fix |
 | --- | --- | --- |
+| Host drops off the network when the charger is plugged in | USB-C adapter re-registers and isn't re-added to `vmbr0` | Run `ifreload -a` on the console; install the udev rule (Phase 1 step 12) |
 | No network after Proxmox install | Wi-Fi NIC picked | Set `bridge-ports` on `vmbr0` in `/etc/network/interfaces` to the Ethernet NIC, then `ifreload -a` |
 | Windows installer shows no disk | VirtIO SCSI driver missing | Load `vioscsi\w11\amd64` |
 | Agent never connects | Can't reach 10.10.10.10:1514/1515 | `Test-NetConnection`; check bridges and IPs |

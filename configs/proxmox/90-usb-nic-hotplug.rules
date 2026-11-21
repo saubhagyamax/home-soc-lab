@@ -1,0 +1,13 @@
+# /etc/udev/rules.d/90-usb-nic-hotplug.rules
+# The Legion's built-in Ethernet port is broken, so vmbr0 uses a USB-C adapter
+# (ASIX AX88179A, cdc_ncm driver, shows up as nic1).
+# The adapter drops off the USB bus when the charger is plugged in. A Linux bridge
+# doesn't re-add a port that re-registers, so the host goes offline until ifreload.
+
+# Keep USB power management from suspending the adapter.
+ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="0b95", ATTR{idProduct}=="1790", TEST=="power/control", ATTR{power/control}="on"
+# When it re-registers, re-apply the network config so it rejoins vmbr0.
+ACTION=="add", SUBSYSTEM=="net", ATTRS{idVendor}=="0b95", ATTRS{idProduct}=="1790", RUN+="/usr/bin/systemd-run --no-block --on-active=3 --timer-property=AccuracySec=1s /usr/sbin/ifreload -a"
+
+# Apply with: udevadm control --reload
+# Find another adapter's IDs with: lsusb
