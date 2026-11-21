@@ -63,7 +63,7 @@ The step-by-step build, from an untouched Windows laptop to a working home SOC. 
 11. **ISOs on `hdd`:**
     - Download from URL: Ubuntu Server 24.04 LTS and `virtio-win.iso`.
     - Upload from the Mac: the Windows 11 eval ISO.
-12. **USB-C Ethernet adapter:** copy [`configs/proxmox/90-usb-nic-hotplug.rules`](../configs/proxmox/90-usb-nic-hotplug.rules) to `/etc/udev/rules.d/` and run `udevadm control --reload`. Without it, plugging in the charger drops the adapter and the host stays offline.
+12. **USB-C Ethernet adapter:** copy [`configs/proxmox/usb-nic-rejoin`](../configs/proxmox/usb-nic-rejoin) to `/usr/local/sbin/` (`chmod 755`) and [`configs/proxmox/90-usb-nic-hotplug.rules`](../configs/proxmox/90-usb-nic-hotplug.rules) to `/etc/udev/rules.d/`, then run `udevadm control --reload`. Test with a replug **and** a reboot. Without it, plugging in the charger drops the adapter and the host stays offline.
 13. **Battery:** keep it plugged in. Optionally, if the file exists, limit charging:
 
     ```

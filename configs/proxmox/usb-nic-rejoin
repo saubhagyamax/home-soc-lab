@@ -1,0 +1,11 @@
+#!/bin/sh
+# Called by udev when the USB-C Ethernet adapter (re)registers.
+# Re-attaches it to vmbr0. Does nothing during boot, before vmbr0 exists;
+# ifupdown adds the port itself then. Uses only netlink (ip), never
+# systemd or ifupdown, so it can't block udev or the boot.
+dev="$1"
+[ -n "$dev" ] && [ -d "/sys/class/net/$dev" ] || exit 0
+[ -d /sys/class/net/vmbr0 ] || exit 0
+/usr/sbin/ip link set "$dev" master vmbr0 2>/dev/null
+/usr/sbin/ip link set "$dev" up 2>/dev/null
+exit 0

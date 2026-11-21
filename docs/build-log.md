@@ -13,5 +13,7 @@ Newest first. One entry per session: what was done, what broke, what was learned
 - Switched to the no-subscription repo and upgraded to 9.2.32; lid close ignored; 1TB HDD wiped and added as `hdd`.
 - **Broke:** plugging in the charger dropped the USB-C Ethernet adapter off the USB bus. It came back as `nic1` but wasn't re-added to `vmbr0`, so the host went offline. `ifreload -a` on the console fixed it.
 - **Fix:** a udev rule re-runs `ifreload -a` whenever the adapter re-registers and turns off USB autosuspend for it. Tested by unplugging and replugging the adapter: the host recovered on its own.
-- **Learned:** a Linux bridge doesn't re-add a hot-plugged port. Check `bridge link` when a host has an IP but no traffic.
+- **Broke again:** the first rule ran `systemd-run ifreload` from udev. After a reboot it blocked udev, `ifupdown2-pre` timed out and `vmbr0` was never created. Recovered from the console (moved the rule aside, `systemctl restart networking`).
+- **Fix v2:** udev now calls a small script that only runs `ip link set nic1 master vmbr0 up`, and only if `vmbr0` already exists. Reboot test passed (back in about 49s). **Replug test failed:** the adapter did not rejoin `vmbr0` after a hot replug. Not yet diagnosed.
+- **Learned:** a Linux bridge doesn't re-add a hot-plugged port; check `bridge link` when a host has an IP but no traffic. Never call systemd or ifupdown from a udev rule, and test boot-time changes with a reboot.
 - Loaded ISOs on `hdd`: Ubuntu Server 24.04.5 (SHA-256 verified by Proxmox), Windows 11 eval (hash matches the Mac copy) and virtio-win.
