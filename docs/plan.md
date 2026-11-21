@@ -6,8 +6,8 @@ Tick items off as they're done and add a dated entry to [build-log.md](build-log
 - [ ] Back up Windows files on the Legion
 - [ ] Confirm the home subnet (`ipconfig getifaddr en0` on the Mac, at home) and reserve `.50` and `.60`
 - [x] Download the Proxmox VE ISO and balenaEtcher
-- [ ] Download the Windows 11 Enterprise evaluation ISO (x64, not LTSC)
-- [ ] Flash the Proxmox USB
+- [x] Download the Windows 11 Enterprise evaluation ISO (x64, not LTSC)
+- [x] Flash the Proxmox USB
 - [ ] BIOS: enable VT-x and VT-d, disable Secure Boot
 - [ ] Legion on Ethernet
 

@@ -7,3 +7,4 @@ Newest first. One entry per session: what was done, what broke, what was learned
 - Confirmed the RAM is fixed at 16GB and sized the VMs to fit (about 12.5GB in total, indexer heap capped).
 - Chose Windows 11 Enterprise evaluation (x64) over LTSC.
 - Started Phase 0: downloaded Proxmox VE 9.2 (SHA-256 verified), balenaEtcher 2.1.9 and virtio-win 0.1.302.
+- Downloaded the Windows 11 Enterprise evaluation ISO (x64, build 26300) and flashed the Proxmox USB (32GB).
