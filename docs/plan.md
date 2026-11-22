@@ -19,7 +19,7 @@ Tick items off as they're done and add a dated entry to [build-log.md](build-log
 - [x] ISOs loaded: Ubuntu Server 24.04, Windows 11 eval, virtio-win
 
 ## Phase 2: Lab network
-- [ ] `vmbr1` bridge with no physical port
+- [x] `vmbr1` bridge with no physical port
 - [ ] (Optional, later) OPNsense VM between `vmbr0` and `vmbr1`
 
 ## Phase 3: Wazuh

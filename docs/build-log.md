@@ -7,6 +7,7 @@ Newest first. One entry per session: what was done, what broke, what was learned
 - **Fix v3:** moved the re-attach out of udev into `vmbr0-port-watch.service`, which listens to `ip monitor link` and re-attaches `nic1` to `vmbr0` whenever it's missing from the bridge. udev now only turns off USB autosuspend.
 - Tests passed: simulated detach (re-attached instantly), reboot (back in about 57s), real replug (re-attached in the same second as the adapter came back).
 - Phase 1 done.
+- Created `vmbr1` (no physical port, no IP, comment `lab-isolated`). `vmbr0` unaffected. Phase 2 done (OPNsense still deferred).
 
 ## 2026-11-21
 - Planned the lab: Proxmox on the Legion 5i, Wazuh SIEM, Windows 11 and Ubuntu victims on an isolated bridge.
