@@ -2,6 +2,12 @@
 
 Newest first. One entry per session: what was done, what broke, what was learned.
 
+## 2026-11-22
+- Diagnosed the failed replug: the adapter appears as `eth0` and is renamed to `nic1` a moment later, and udev can't reliably act on the final name or wait for it.
+- **Fix v3:** moved the re-attach out of udev into `vmbr0-port-watch.service`, which listens to `ip monitor link` and re-attaches `nic1` to `vmbr0` whenever it's missing from the bridge. udev now only turns off USB autosuspend.
+- Tests passed: simulated detach (re-attached instantly), reboot (back in about 57s), real replug (re-attached in the same second as the adapter came back).
+- Phase 1 done.
+
 ## 2026-11-21
 - Planned the lab: Proxmox on the Legion 5i, Wazuh SIEM, Windows 11 and Ubuntu victims on an isolated bridge.
 - Confirmed the RAM is fixed at 16GB and sized the VMs to fit (about 12.5GB in total, indexer heap capped).

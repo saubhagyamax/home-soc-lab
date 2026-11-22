@@ -9,7 +9,7 @@ Everything runs on one dedicated laptop (Lenovo Legion 5i, 16GB RAM) using Proxm
 | Phase | What | Status |
 | --- | --- | --- |
 | 0 | Prep: backup, downloads, BIOS | Done |
-| 1 | Proxmox VE install on bare metal | In progress |
+| 1 | Proxmox VE install on bare metal | Done |
 | 2 | Isolated lab network (`vmbr1`) | Not started |
 | 3 | Wazuh SIEM (all-in-one) | Not started |
 | 4 | Windows 11 victim (Sysmon + agent) | Not started |

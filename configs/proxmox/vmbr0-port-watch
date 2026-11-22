@@ -1,0 +1,18 @@
+#!/bin/sh
+# Keeps the USB-C Ethernet adapter attached to vmbr0.
+# A Linux bridge does not re-add a port that drops off and re-registers
+# (the adapter does this when the charger is plugged in). This watches link
+# events and re-attaches the port whenever it exists but is not on the bridge.
+PORT=nic1
+BR=vmbr0
+
+fix() {
+    [ -d "/sys/class/net/$PORT" ] && [ -d "/sys/class/net/$BR" ] || return 0
+    master=$(basename "$(readlink "/sys/class/net/$PORT/master" 2>/dev/null)" 2>/dev/null)
+    [ "$master" = "$BR" ] && return 0
+    ip link set "$PORT" master "$BR" 2>/dev/null && ip link set "$PORT" up 2>/dev/null &&
+        logger -t vmbr0-port-watch "re-attached $PORT to $BR"
+}
+
+fix
+ip -o monitor link | while read -r _; do fix; done

@@ -63,7 +63,11 @@ The step-by-step build, from an untouched Windows laptop to a working home SOC. 
 11. **ISOs on `hdd`:**
     - Download from URL: Ubuntu Server 24.04 LTS and `virtio-win.iso`.
     - Upload from the Mac: the Windows 11 eval ISO.
-12. **USB-C Ethernet adapter:** copy [`configs/proxmox/usb-nic-rejoin`](../configs/proxmox/usb-nic-rejoin) to `/usr/local/sbin/` (`chmod 755`) and [`configs/proxmox/90-usb-nic-hotplug.rules`](../configs/proxmox/90-usb-nic-hotplug.rules) to `/etc/udev/rules.d/`, then run `udevadm control --reload`. Test with a replug **and** a reboot. Without it, plugging in the charger drops the adapter and the host stays offline.
+12. **USB-C Ethernet adapter:** the adapter drops off the USB bus when the charger is plugged in, and the bridge doesn't re-add it. Install the watcher from [`configs/proxmox/`](../configs/proxmox/):
+    - `vmbr0-port-watch` → `/usr/local/sbin/` (`chmod 755`)
+    - `vmbr0-port-watch.service` → `/etc/systemd/system/`, then `systemctl enable --now vmbr0-port-watch`
+    - `90-usb-nic-hotplug.rules` → `/etc/udev/rules.d/`, then `udevadm control --reload` (turns off USB autosuspend)
+    - Test with a replug **and** a reboot. Without it, plugging in the charger drops the adapter and the host stays offline.
 13. **Battery:** keep it plugged in. Optionally, if the file exists, limit charging:
 
     ```
@@ -265,7 +269,7 @@ Use `detections/_template.md` for each one. Aim for about 8 in 3 weeks, then sta
 
 | Symptom | Likely cause | Fix |
 | --- | --- | --- |
-| Host drops off the network when the charger is plugged in | USB-C adapter re-registers and isn't re-added to `vmbr0` | Run `ifreload -a` on the console; install the udev rule (Phase 1 step 12) |
+| Host drops off the network when the charger is plugged in | USB-C adapter re-registers and isn't re-added to `vmbr0` | Run `ifreload -a` on the console; install the watcher service (Phase 1 step 12) |
 | No network after Proxmox install | Wi-Fi NIC picked | Set `bridge-ports` on `vmbr0` in `/etc/network/interfaces` to the Ethernet NIC, then `ifreload -a` |
 | Windows installer shows no disk | VirtIO SCSI driver missing | Load `vioscsi\w11\amd64` |
 | Agent never connects | Can't reach 10.10.10.10:1514/1515 | `Test-NetConnection`; check bridges and IPs |

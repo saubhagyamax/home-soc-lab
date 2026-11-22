@@ -1,0 +1,12 @@
+[Unit]
+Description=Re-attach the USB-C Ethernet adapter to vmbr0 after it re-registers
+After=networking.service
+Wants=networking.service
+
+[Service]
+ExecStart=/usr/local/sbin/vmbr0-port-watch
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
