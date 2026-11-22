@@ -93,61 +93,41 @@ VM disks live on the SSD (`local-lvm`); ISOs and backups go on the HDD.
 
 ## Phase 3: Wazuh SIEM VM (about 1.5 hrs)
 
-**Create the VM**
+**Create the VM (cloud image + cloud-init, no installer)**
 
-| Tab | Setting |
+The VM is built from Ubuntu's official 24.04 cloud image. cloud-init sets the user, SSH key, both NICs, timezone and guest agent on first boot, so there's no console install.
+
+| Setting | Value |
 | --- | --- |
-| General | Name `wazuh` |
-| OS | Ubuntu Server 24.04 ISO |
-| System | Qemu Agent ticked |
-| Disks | 80GB on `local-lvm`, Discard + SSD emulation |
-| CPU | 4 cores, type `host` |
-| Memory | 6144 MB, Ballooning off |
-| Network | `vmbr0`, VirtIO |
+| VM | ID 100, name `wazuh`, q35, CPU type `host`, 4 cores |
+| Memory | 6144 MB, ballooning off |
+| Disk | 80GB on `local-lvm`, Discard + SSD emulation + IO thread |
+| `net0` | `vmbr0` → `eth0` `192.168.1.60/24`, gateway `192.168.1.1`, DNS `1.1.1.1` |
+| `net1` | `vmbr1` → `eth1` `10.10.10.10/24` (lab, no gateway) |
+| User | `seb`, key-only SSH (the Mac's `homelab_ed25519` key), passwordless sudo |
 
-**Install Ubuntu**
+1. Copy the Mac's public key to the host: `scp ~/.ssh/homelab_ed25519.pub root@192.168.1.50:/root/`.
+2. Copy [`configs/wazuh/cloud-init-vendor.yaml`](../configs/wazuh/cloud-init-vendor.yaml) to `/var/lib/vz/snippets/wazuh-vendor.yaml` and enable snippets on `local`.
+3. Run [`configs/wazuh/create-vm.sh`](../configs/wazuh/create-vm.sh) on the host. It downloads and checksum-verifies the cloud image, creates the VM and starts it.
+4. From the Mac: `ssh -i ~/.ssh/homelab_ed25519 seb@192.168.1.60`. Wait for `cloud-init status --wait`, then `sudo reboot` if `/var/run/reboot-required` exists.
+5. Check: `ip -br a` shows both IPs, and `qm agent 100 ping` works on the host.
 
-1. `ens18` manual: `192.168.1.60/24`, gateway `192.168.1.1`, DNS `1.1.1.1`.
-2. Use the entire disk. Username `seb`, OpenSSH server ticked, no snaps.
-3. From the Mac, `ssh seb@192.168.1.60`, then:
+`cloud-init status` may say "degraded done" because of a deprecation notice about Proxmox's `user` key. It's harmless.
 
-    ```
-    sudo apt update && sudo apt full-upgrade -y
-    sudo apt install qemu-guest-agent -y
-    sudo systemctl enable --now qemu-guest-agent
-    ```
-
-**Add the lab NIC**
-
-4. Go to VM → Hardware → Add → Network Device on `vmbr1` (VirtIO).
-5. Find the new interface (usually `ens19`) with `ip a`, then edit the netplan file (see `configs/wazuh/netplan-wazuh.yaml`):
-
-    ```
-    network:
-      version: 2
-      ethernets:
-        ens18:
-          addresses: [192.168.1.60/24]
-          routes: [{to: default, via: 192.168.1.1}]
-          nameservers: {addresses: [1.1.1.1]}
-        ens19:
-          addresses: [10.10.10.10/24]
-    ```
-
-6. Run `sudo netplan apply` and check `ens19` shows `10.10.10.10`.
+To set a console password for `seb` (optional, for the Proxmox console): `sudo passwd seb`.
 
 **Install Wazuh (all-in-one)**
 
-7. Copy the current one-liner from documentation.wazuh.com → Quickstart (it runs `wazuh-install.sh -a`). It takes 10–20 minutes.
+7. Copy the current one-liner from documentation.wazuh.com → Quickstart. For 4.14 it was `curl -sO https://packages.wazuh.com/4.14/wazuh-install.sh && sudo bash ./wazuh-install.sh -a`. It takes 10–20 minutes. Run it under `nohup` so a dropped SSH session can't kill it.
 8. Save the printed `admin` password in a password manager.
-9. **Cap the indexer heap (required on 16GB):** in `/etc/wazuh-indexer/jvm.options`, set the lines below, then run `sudo systemctl restart wazuh-indexer`.
+9. **Set the indexer heap to 3GB (required on 16GB):** the 4.14 installer defaulted to 1GB, so this raises it to half the VM's RAM. Check with `ps -o args= -C java | grep -o -- -Xmx[0-9a-z]*`. in `/etc/wazuh-indexer/jvm.options`, set the lines below, then run `sudo systemctl restart wazuh-indexer`.
 
     ```
     -Xms3g
     -Xmx3g
     ```
 
-10. On the Mac, open `https://192.168.1.60`. If it isn't ready, wait 2–3 minutes. Change the admin password (Wazuh's "Password management" doc).
+10. On the Mac, open `https://192.168.1.60`. If it isn't ready, wait 2–3 minutes. Optionally change the admin password. The dashboard refuses ("Resource 'admin' is reserved"), so use `sudo bash /usr/share/wazuh-indexer/plugins/opensearch-security/tools/wazuh-passwords-tool.sh -u admin -p '<new>'` (special characters limited to `.*+?-`). The generated password is in `/root/wazuh-install-files.tar` (root only).
 11. Take a snapshot named `wazuh-fresh`.
 
 ## Phase 4: Windows 11 victim VM (about 2 hrs)

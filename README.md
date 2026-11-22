@@ -11,7 +11,7 @@ Everything runs on one dedicated laptop (Lenovo Legion 5i, 16GB RAM) using Proxm
 | 0 | Prep: backup, downloads, BIOS | Done |
 | 1 | Proxmox VE install on bare metal | Done |
 | 2 | Isolated lab network (`vmbr1`) | Done |
-| 3 | Wazuh SIEM (all-in-one) | Not started |
+| 3 | Wazuh SIEM (all-in-one) | Done |
 | 4 | Windows 11 victim (Sysmon + agent) | Not started |
 | 5 | Ubuntu target (auditd + agent) | Not started |
 | 6 | MacBook as control centre | Not started |

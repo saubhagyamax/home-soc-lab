@@ -8,6 +8,11 @@ Newest first. One entry per session: what was done, what broke, what was learned
 - Tests passed: simulated detach (re-attached instantly), reboot (back in about 57s), real replug (re-attached in the same second as the adapter came back).
 - Phase 1 done.
 - Created `vmbr1` (no physical port, no IP, comment `lab-isolated`). `vmbr0` unaffected. Phase 2 done (OPNsense still deferred).
+- Built the `wazuh` VM from the Ubuntu 24.04 cloud image (checksum verified) with cloud-init instead of the installer: both NICs, user, SSH key and guest agent set on first boot. SSH was up 16s after start.
+- Installed Wazuh 4.14.10 all-in-one with the Quickstart script (about 7 min). Raised the indexer heap from the installer's 1GB default to 3GB. All four services active; dashboard reachable from the Mac.
+- Kept the generated admin password. The dashboard can't change `admin` ("Resource 'admin' is reserved"); the password tool is the way if needed.
+- Snapshot `wazuh-fresh` taken. Thin pool shows an overprovisioning warning (160GB promised vs 141GB pool) but real use is 14%.
+- Phase 3 done.
 
 ## 2026-11-21
 - Planned the lab: Proxmox on the Legion 5i, Wazuh SIEM, Windows 11 and Ubuntu victims on an isolated bridge.

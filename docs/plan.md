@@ -23,11 +23,11 @@ Tick items off as they're done and add a dated entry to [build-log.md](build-log
 - [ ] (Optional, later) OPNsense VM between `vmbr0` and `vmbr1`
 
 ## Phase 3: Wazuh
-- [ ] Ubuntu Server VM: 4 vCPU, 6GB, 80GB
-- [ ] Second NIC on `vmbr1` (`10.10.10.10`)
-- [ ] Wazuh all-in-one installed, admin password changed
-- [ ] Indexer heap capped at 3GB (`jvm.options`)
-- [ ] Snapshot `wazuh-fresh`
+- [x] Ubuntu Server VM: 4 vCPU, 6GB, 80GB (cloud image + cloud-init)
+- [x] Second NIC on `vmbr1` (`10.10.10.10`)
+- [x] Wazuh all-in-one installed (4.14.10); kept the generated admin password
+- [x] Indexer heap set to 3GB (`jvm.options`)
+- [x] Snapshot `wazuh-fresh`
 
 ## Phase 4: Windows 11 victim
 - [ ] VM: 2 vCPU, 4GB (balloon min 3GB), 64GB, VirtIO drivers
