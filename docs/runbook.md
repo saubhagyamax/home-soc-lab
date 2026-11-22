@@ -132,62 +132,63 @@ To set a console password for `seb` (optional, for the Proxmox console): `sudo p
 
 ## Phase 4: Windows 11 victim VM (about 2 hrs)
 
-**Create the VM**
+Only Windows Setup needs the console. Everything after it is done over SSH from the Mac, using the scripts in [`configs/windows/`](../configs/windows/).
 
-| Tab | Setting |
+**Create the VM (ID 101)**
+
+| Setting | Value |
 | --- | --- |
-| General | Name `win11` |
-| OS | Win11 eval ISO, type Microsoft Windows 11, extra drive for VirtIO drivers = `virtio-win.iso` |
-| System | q35, OVMF (UEFI), EFI disk + TPM v2.0 on `local-lvm`, Qemu Agent ticked |
-| Disks | 64GB, VirtIO SCSI single, Discard on |
-| CPU | 2 cores, type `host` |
-| Memory | 4096 MB, Ballooning on, minimum 3072 MB |
-| Network | `vmbr0`, VirtIO |
+| Machine | q35, OVMF (UEFI), EFI disk with pre-enrolled keys, TPM v2.0, Qemu Agent on |
+| CPU type | `x86-64-v2-AES`, **not** `host` (untested fix: with `host` the VM froze after Windows Update, suspected VBS under nested virtualisation) |
+| CPU / RAM | 2 cores, 4096 MB, ballooning off |
+| Disk | 64GB `local-lvm`, VirtIO SCSI single, Discard + SSD + IO thread |
+| CD drives | Win11 eval ISO (`ide2`), `virtio-win.iso` (`sata0`) |
+| `net0` | `vmbr0` (home, DHCP): internet during the build, removed when isolating |
+| `net1` | `vmbr1` (lab): static `10.10.10.20/24`, no gateway. The agent registers over this from the start |
 
-**Install Windows**
+Don't start it from the CLI: the "Press any key to boot from CD" prompt only lasts a few seconds, so start it from the console.
 
-1. Boot from the CD.
-2. When no disk is shown, Load driver → VirtIO CD → `vioscsi\w11\amd64`.
-3. Load `NetKVM\w11\amd64` if asked. Choose **Domain join instead** to create the local account `labadmin`.
-4. After login, run `virtio-win-guest-tools.exe` from the VirtIO CD.
-5. Run Windows Update until clean. Rename the PC `WIN11-LAB`.
+**Install Windows (console)**
 
-**Logging**
+1. Console → Start, press a key at the CD prompt.
+2. No disk shown: Load driver → virtio-win CD → `vioscsi\w11\amd64`.
+3. Without a network driver, OOBE offers a local account. Create `labadmin`; decline all privacy options.
+4. On the desktop, run `virtio-win-guest-tools.exe` from the CD. If the `QEMU-GA` service is missing afterwards, install `guest-agent\qemu-ga-x86_64.msi` from the same CD.
 
-6. In `gpedit.msc`, go to Administrative Templates → Windows Components → Windows PowerShell and enable **Turn on PowerShell Script Block Logging**.
-7. Under Advanced Audit Policy, enable Success + Failure for Logon/Logoff → Logon and for Object Access → Other Object Access Events.
+**Remote access**
 
-**Sysmon**
+5. Pasting into the Proxmox console doesn't work, so serve [`enable-ssh.ps1`](../configs/windows/enable-ssh.ps1) from the Mac (`python3 -m http.server 8000 --bind <mac-ip>`) and in an admin PowerShell run `irm http://<mac-ip>:8000/enable-ssh.ps1 | iex`. It installs OpenSSH from Microsoft's GitHub MSI (checksum-pinned), adds the Mac's key and makes PowerShell the default shell.
+    - **Don't** use `Add-WindowsCapability OpenSSH.Server`. It's slow on a fresh install, and if cancelled, Windows completes it on the next update reboot, which deletes the working `sshd` service.
+6. Make the SSH and RDP firewall rules apply to **all** profiles (`Set-NetFirewallRule -Profile Any`) and set the networks to Private. Rules limited to Private silently block SSH when Windows classes a network as Public, and the isolated lab network is "unidentified", which is Public.
+7. `Set-ExecutionPolicy RemoteSigned -Scope LocalMachine`.
+8. Over SSH, pipe scripts to `powershell -Command -` or send them base64-encoded: `-Command -` runs one line at a time, so multi-line here-strings break, and `scp` doesn't work with this OpenSSH build.
 
-8. Put Sysinternals Sysmon and `sysmonconfig.xml` (from olafhartong/sysmon-modular) in `C:\Tools\Sysmon`.
-9. In an admin PowerShell, run `.\Sysmon64.exe -accepteula -i sysmonconfig.xml`.
-10. Check Event Viewer → Microsoft → Windows → Sysmon → Operational is filling up.
+**Base setup (over SSH)**
+
+9. Set `10.10.10.20/24` on the lab NIC, rename adapters `Home` and `Lab`, `Rename-Computer WIN11-LAB`, reboot.
+10. **Take a snapshot before Windows Update.** Then Windows Update: [`windows-update.ps1`](../configs/windows/windows-update.ps1). The update API refuses SSH sessions, so it runs as a SYSTEM scheduled task. Repeat after each reboot until nothing is listed. Reboot with `shutdown /r` from inside Windows and **never Stop/Reset the VM from Proxmox** mid-update. After a reboot, wait until `LastBootUpTime` is fresh: SSH can answer for a while before Windows actually restarts.
+
+**Logging and Sysmon**
+
+11. [`logging.ps1`](../configs/windows/logging.ps1): Script Block Logging, plus Success + Failure for Logon and Other Object Access Events.
+12. [`sysmon.ps1`](../configs/windows/sysmon.ps1): Sysmon (Microsoft signature checked) with the sysmon-modular config. Built configs are now release assets with a `SHA256SUMS` file, not files in the repo. Check that Event Viewer → Sysmon/Operational is filling up.
 
 **Wazuh agent**
 
-11. In the dashboard, go to Agents → Deploy new agent → Windows, with server `10.10.10.10` and name `WIN11-LAB`. Run the generated command, then `NET START WazuhSvc`.
-12. Add the `localfile` blocks from `configs/windows/ossec-localfile.xml` to `C:\Program Files (x86)\ossec-agent\ossec.conf`, then run `Restart-Service WazuhSvc`.
+13. Download `https://packages.wazuh.com/4.x/windows/wazuh-agent-<version>-1.msi` (check it's signed by Wazuh) and install with `msiexec /i <msi> /qn WAZUH_MANAGER=10.10.10.10 WAZUH_AGENT_NAME=WIN11-LAB`.
+14. [`wazuh-agent-channels.ps1`](../configs/windows/wazuh-agent-channels.ps1) adds the Sysmon and PowerShell channels and starts `WazuhSvc`. On the manager, `sudo /var/ossec/bin/agent_control -l` should show the agent **Active**.
 
 **Atomic Red Team**
 
-13. In Defender, add an exclusion for `C:\AtomicRedTeam` (keep Defender on otherwise).
-14. In an admin PowerShell:
-
-    ```
-    Set-ExecutionPolicy Bypass -Scope Process -Force
-    IEX (IWR 'https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1' -UseBasicParsing)
-    Install-AtomicRedTeam -getAtomics
-    ```
-
-15. **While still online,** run `Invoke-AtomicTest <ID> -GetPrereqs` for T1059.001, T1053.005, T1547.001 and T1003.001.
-16. Enable Remote Desktop.
+15. [`atomic-red-team.ps1`](../configs/windows/atomic-red-team.ps1): Defender exclusion for `C:\AtomicRedTeam` only (real-time protection stays on), Invoke-AtomicRedTeam with atomics, and an all-users profile that loads it.
+16. **While still online,** `Invoke-AtomicTest <ID> -GetPrereqs` for T1059.001, T1053.005, T1547.001, T1003.001 and T1136.001. Defender flags some prerequisite downloads (Mimikatz, GhostTask); a few tests stay unavailable, which is fine.
+17. Enable Remote Desktop with NLA.
 
 **Isolate**
 
-17. Shut down and change the NIC bridge to `vmbr1`.
-18. Set a static IPv4 of `10.10.10.20/24` with no gateway.
-19. Running `Test-NetConnection 10.10.10.10 -Port 1514` should give `True`, and the agent should show **Active**.
-20. Take a snapshot named `clean`.
+18. Shut down, remove `net0` (home NIC). The lab NIC already has `10.10.10.20`.
+19. From the Mac, reach Windows via the Wazuh VM: `ssh -J seb@192.168.1.60 labadmin@10.10.10.20`.
+20. The agent should stay **Active**. Take a snapshot named `clean`.
 
 ## Phase 5: Ubuntu target VM (about 45 min)
 

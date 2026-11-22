@@ -30,14 +30,15 @@ Tick items off as they're done and add a dated entry to [build-log.md](build-log
 - [x] Snapshot `wazuh-fresh`
 
 ## Phase 4: Windows 11 victim
-- [ ] VM: 2 vCPU, 4GB (balloon min 3GB), 64GB, VirtIO drivers
-- [ ] Windows updated, renamed `WIN11-LAB`
-- [ ] PowerShell Script Block Logging and advanced audit policy on
-- [ ] Sysmon installed with sysmon-modular config
-- [ ] Wazuh agent with Sysmon and PowerShell channels
-- [ ] Atomic Red Team installed, prereqs fetched
+- [x] VM: 2 vCPU, 4GB, 64GB, VirtIO drivers (CPU/balloon changed while debugging freezes)
+- [x] Windows updated, renamed `WIN11-LAB`
+- [x] PowerShell Script Block Logging and advanced audit policy on
+- [x] Sysmon installed with sysmon-modular config
+- [x] Wazuh agent with Sysmon and PowerShell channels
+- [x] Atomic Red Team installed, prereqs fetched
 - [ ] Moved to `vmbr1` at `10.10.10.20`, agent Active
 - [ ] Snapshot `clean`
+- [ ] **Fix: VM freezes a few minutes after boot since the first update reboot**
 
 ## Phase 5: Ubuntu target
 - [ ] VM: 1 vCPU, 1GB, 20GB

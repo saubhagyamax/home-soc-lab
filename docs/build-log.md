@@ -2,6 +2,14 @@
 
 Newest first. One entry per session: what was done, what broke, what was learned.
 
+## 2026-11-23 (late session)
+- Built the Windows 11 VM (ID 101). Only Windows Setup used the console; the rest was done over SSH with the scripts now in `configs/windows/`.
+- Working on it: Script Block Logging + audit policy, Sysmon with sysmon-modular, Wazuh agent `WIN11-LAB` Active over the lab network, Atomic Red Team with prereqs for five techniques, RDP.
+- **Broke:** cancelling `Add-WindowsCapability OpenSSH.Server` didn't cancel it. Windows finished it on the update reboot and deleted the working `sshd` service. Fixed by removing the capability and reinstalling the GitHub MSI.
+- **Broke:** SSH firewall rules were Private-only and Windows classed both NICs Public. Fixed with `-Profile Any`.
+- **Broke, unresolved:** since the first post-update reboot, Windows freezes at 0% CPU a few minutes after boot. Disk `iothread=0,aio=threads` didn't help. Switched CPU from `host` to `x86-64-v2-AES` and turned ballooning off (suspected VBS under nested virtualisation); not yet tested.
+- **Learned:** snapshot before Windows Update; never use CPU type `host` for Windows 11 guests without checking VBS; verify a reboot actually happened (`LastBootUpTime`), since SSH can answer before Windows restarts.
+
 ## 2026-11-22
 - Diagnosed the failed replug: the adapter appears as `eth0` and is renamed to `nic1` a moment later, and udev can't reliably act on the final name or wait for it.
 - **Fix v3:** moved the re-attach out of udev into `vmbr0-port-watch.service`, which listens to `ip monitor link` and re-attaches `nic1` to `vmbr0` whenever it's missing from the bridge. udev now only turns off USB autosuspend.
